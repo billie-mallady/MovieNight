@@ -46,6 +46,11 @@ type Settings struct {
 	TitleLength       int  // maximum length of the title that can be set with the /playing
 	WrappedEmotesOnly bool // only allow "wrapped" emotes.  eg :Kappa: and [Kappa] but not Kappa
 
+	// Chat persistence settings
+	ChatHistory         bool   // enable chat history persistence
+	ChatHistoryFile     string // file to store chat history
+	MessageHistoryCount int    // number of recent messages to keep and show to new users
+
 	// Rate limiting stuff, in seconds
 	RateLimitChat      time.Duration
 	RateLimitNick      time.Duration
@@ -103,6 +108,17 @@ func LoadSettings(filename string) (*Settings, error) {
 		s.MaxMessageCount = 300
 	} else if s.MaxMessageCount < 0 {
 		return s, fmt.Errorf("value for MaxMessageCount must be greater than 0, given %d", s.MaxMessageCount)
+	}
+
+	// Set default chat history settings
+	if s.MessageHistoryCount == 0 {
+		s.MessageHistoryCount = 50
+	} else if s.MessageHistoryCount < 0 {
+		s.MessageHistoryCount = 0 // 0 means no history shown to new users
+	}
+
+	if s.ChatHistoryFile == "" {
+		s.ChatHistoryFile = "chat_history.json"
 	}
 
 	if s.RegenAdminPass || s.AdminPassword == "" {

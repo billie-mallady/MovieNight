@@ -435,6 +435,29 @@ var commands = &CommandControl{
 				return "", nil
 			},
 		},
+
+		common.CNPurgeHistory.String(): {
+			HelpText: "Purge the chat history (permanently delete stored messages).",
+			Function: func(cl *Client, args []string) (string, error) {
+				if !settings.ChatHistory {
+					return "", newChatError("Chat history is not enabled.")
+				}
+
+				if cl.belongsTo.history == nil {
+					return "", newChatError("Chat history is not available.")
+				}
+
+				common.LogInfoln("[purgehistory] clearing chat history by", cl.name)
+				err := cl.belongsTo.history.Clear()
+				if err != nil {
+					common.LogErrorf("Error clearing chat history: %v", err)
+					return "", newChatError("Failed to clear chat history.")
+				}
+
+				cl.belongsTo.AddModNotice(cl.name + " has purged the chat history")
+				return "Chat history has been cleared.", nil
+			},
+		},
 	},
 
 	admin: map[string]Command{

@@ -269,6 +269,13 @@ function handleChatCommand(data) {
                 initPlayer();
             }
             break;
+        case CommandType.CmdStreamChange:
+            // calling a video function to reconnect to new stream
+            if (typeof reconnectStream !== 'undefined') {
+                reconnectStream();
+            }
+            appendMessages(`<span class="notice">Stream is changing, reconnecting...</span>`);
+            break;
         case CommandType.CmdPurgeChat:
             purgeChat();
             appendMessages(`<span class="notice">Chat has been purged by a moderator.</span>`);

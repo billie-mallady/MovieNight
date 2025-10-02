@@ -28,6 +28,7 @@ const CommandType = {
     CmdPurgeChat: 2,
     CmdHelp: 3,
     CmdEmotes: 4,
+    CmdStreamChange: 5,
 };
 Object.freeze(CommandType);
 
@@ -46,6 +47,7 @@ const EventType = {
     EvServerMessage: 4,
     EvNameChange: 5,
     EvNameChangeForced: 6,
+    EvStreamChange: 7,
 };
 Object.freeze(EventType);
 

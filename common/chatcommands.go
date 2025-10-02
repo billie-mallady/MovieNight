@@ -25,13 +25,14 @@ var (
 	CNPin    ChatCommandNames = []string{"pin", "password"}
 	CNEmotes ChatCommandNames = []string{"emotes"}
 	// Mod Commands
-	CNSv      ChatCommandNames = []string{"sv"}
-	CNPlaying ChatCommandNames = []string{"playing"}
-	CNUnmod   ChatCommandNames = []string{"unmod"}
-	CNKick    ChatCommandNames = []string{"kick"}
-	CNBan     ChatCommandNames = []string{"ban"}
-	CNUnban   ChatCommandNames = []string{"unban"}
-	CNPurge   ChatCommandNames = []string{"purge"}
+	CNSv           ChatCommandNames = []string{"sv"}
+	CNPlaying      ChatCommandNames = []string{"playing"}
+	CNUnmod        ChatCommandNames = []string{"unmod"}
+	CNKick         ChatCommandNames = []string{"kick"}
+	CNBan          ChatCommandNames = []string{"ban"}
+	CNUnban        ChatCommandNames = []string{"unban"}
+	CNPurge        ChatCommandNames = []string{"purge"}
+	CNPurgeHistory ChatCommandNames = []string{"purgehistory", "clearhistory"}
 	// Admin Commands
 	CNMod          ChatCommandNames = []string{"mod"}
 	CNReloadPlayer ChatCommandNames = []string{"reloadplayer"}
@@ -63,6 +64,7 @@ var ChatCommands = []ChatCommandNames{
 	CNBan,
 	CNUnban,
 	CNPurge,
+	CNPurgeHistory,
 
 	// Admin
 	CNMod,

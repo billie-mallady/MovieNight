@@ -328,7 +328,7 @@ func handleIndexTemplate(w http.ResponseWriter, r *http.Request) {
 	data := Data{
 		Video:               true,
 		Chat:                true,
-		MessageHistoryCount: settings.MaxMessageCount,
+		MessageHistoryCount: settings.MessageHistoryCount,
 		Title:               settings.PageTitle,
 	}
 
@@ -400,6 +400,11 @@ func handlePublish(conn *rtmp.Conn) {
 	l.Unlock()
 
 	stats.startStream()
+
+	// Notify clients that a new stream has started
+	if chat != nil {
+		chat.AddCmdMsg(common.CmdStreamChange, []string{"Stream starting"})
+	}
 
 	common.LogInfoln("Stream started")
 	err = avutil.CopyPackets(ch.que, conn)

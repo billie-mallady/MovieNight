@@ -26,14 +26,21 @@ type ChatRoom struct {
 
 	modPasswords    []string // single-use mod passwords
 	modPasswordsMtx sync.Mutex
+
+	history *ChatHistory // chat history persistence
 }
 
-//initializing the chatroom
+// initializing the chatroom
 func newChatRoom() (*ChatRoom, error) {
 	cr := &ChatRoom{
 		queue:    make(chan common.ChatData, 1000),
 		modqueue: make(chan common.ChatData, 1000),
 		clients:  []*Client{},
+	}
+
+	// Initialize chat history
+	if settings.ChatHistory {
+		cr.history = NewChatHistory(settings.ChatHistoryFile)
 	}
 
 	err := loadEmotes()
@@ -118,6 +125,25 @@ func (cr *ChatRoom) Join(conn *chatConnection, data common.JoinData) (*Client, e
 			common.LogErrorf("could not send playing command on join: %v\n", err)
 		}
 	}
+	// Send chat history to the new client
+	if settings.ChatHistory && cr.history != nil && settings.MessageHistoryCount > 0 {
+		historyMessages := cr.history.GetRecentMessages(settings.MessageHistoryCount)
+		for _, histMsg := range historyMessages {
+			jsonData, err := histMsg.ToJSON()
+			if err != nil {
+				common.LogErrorf("Error converting history message to JSON: %v", err)
+				continue
+			}
+			err = client.Send(jsonData)
+			if err != nil {
+				common.LogErrorf("Error sending history message to client: %v", err)
+			}
+		}
+		if len(historyMessages) > 0 {
+			sendHiddenMessage(common.CdNotify, fmt.Sprintf("Loaded %d recent messages", len(historyMessages)))
+		}
+	}
+
 	if !settings.LetThemLurk {
 		cr.AddEventMsg(common.EvJoin, data.Name, data.Color)
 	}
@@ -237,6 +263,11 @@ func (cr *ChatRoom) AddMsg(from *Client, isAction, isServer bool, msg string) {
 
 // Add a chat message object to the queue
 func (cr *ChatRoom) AddChatMsg(data common.ChatData) {
+	// Save to history if enabled
+	if settings.ChatHistory && cr.history != nil {
+		cr.history.AddMessage(data)
+	}
+
 	select {
 	case cr.queue <- data:
 	default:
@@ -245,8 +276,15 @@ func (cr *ChatRoom) AddChatMsg(data common.ChatData) {
 }
 
 func (cr *ChatRoom) AddCmdMsg(command common.CommandType, args []string) {
+	data := common.NewChatCommand(command, args)
+
+	// Save to history if enabled (except for stream change notifications which are temporary)
+	if settings.ChatHistory && cr.history != nil && command != common.CmdStreamChange {
+		cr.history.AddMessage(data)
+	}
+
 	select {
-	case cr.queue <- common.NewChatCommand(command, args):
+	case cr.queue <- data:
 	default:
 		common.LogErrorln("Unable to queue command message.  Channel full.")
 	}
@@ -322,7 +360,7 @@ func (cr *ChatRoom) UserCount() int {
 	return len(cr.clients)
 }
 
-//broadcasting all the messages in the queue in one block
+// broadcasting all the messages in the queue in one block
 func (cr *ChatRoom) Broadcast() {
 	send := func(data common.ChatData, client *Client) {
 		err := client.SendChatData(data)

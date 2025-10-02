@@ -35,6 +35,7 @@ const (
 	CmdPurgeChat
 	CmdHelp
 	CmdEmotes
+	CmdStreamChange
 )
 
 type CommandLevel int
@@ -57,6 +58,7 @@ const (
 	EvServerMessage
 	EvNameChange
 	EvNameChangeForced
+	EvStreamChange
 )
 
 type MessageType int
